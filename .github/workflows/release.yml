@@ -1,0 +1,37 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # The README badge holds the version: a tag that doesn't match it is a
+      # forgotten bump.
+      - run: |
+          grep -qF "<sub>$GITHUB_REF_NAME · " README.md || {
+            echo "::error::tag $GITHUB_REF_NAME doesn't match the version in README.md"
+            exit 1
+          }
+      # The latest Go, not go.mod's minimum: macOS refuses to run binaries
+      # from Go 1.22's linker ("missing LC_UUID"). The linker signs the
+      # darwin/arm64 binary ad hoc, even when cross-compiling.
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - run: |
+          for arch in arm64 amd64; do
+            CGO_ENABLED=0 GOOS=darwin GOARCH=$arch go build -trimpath -ldflags=-s -o "dist/macseal-builder-darwin-$arch" .
+          done
+      - run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --notes "$NOTES"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: |
+            The binaries aren't notarised. Download with `curl` and macOS sets no quarantine flag;
+            from a browser, clear it with `xattr -d com.apple.quarantine macseal-builder-darwin-*`, then `chmod +x` it.

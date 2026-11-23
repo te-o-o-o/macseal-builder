@@ -1,0 +1,5 @@
+/macseal-builder
+/dist/
+*.p12
+*.p12.password
+.DS_Store

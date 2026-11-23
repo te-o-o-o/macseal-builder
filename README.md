@@ -14,7 +14,7 @@
   survive, where an ad-hoc signature loses them at every build.
 - **Signing done in the right order.** `sign` seals nested helpers, frameworks
   and dylibs before the app, without the deprecated `--deep`, in a throwaway
-  keychain that never touches yours.
+  keychain: your login keychain is never touched.
 - **A doctor before your users find out.** `doctor` reads a `.app` and reports
   what will break: no signature, an ad-hoc one, a broken seal, a quarantine
   flag, missing Info.plist keys, a single architecture. `-json` for scripts.

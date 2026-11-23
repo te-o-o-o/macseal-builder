@@ -23,9 +23,11 @@
 ## Choix
 
 - **Des trousseaux jetables.** La signature importe l'identité dans un
-  trousseau d'un dossier temporaire, donné à codesign par son chemin puis
-  supprimé. Il n'est jamais ajouté à la liste de recherche : le trousseau de
-  session n'est jamais touché.
+  trousseau d'un dossier temporaire, supprimé ensuite : le trousseau de session
+  n'est jamais touché. Il rejoint la liste de recherche de l'utilisateur le
+  temps de codesign, puis la liste d'avant est remise : codesign sous
+  macOS 15 ne trouve pas l'identité sinon (`--keychain` seul suffit sous
+  macOS 27).
 - **Le PKCS#12 passe par `security export`.** La bibliothèque standard de Go
   n'a pas d'encodeur PKCS#12, et un fichier écrit par OpenSSL 3 (AES par
   défaut) est refusé par les anciennes versions de macOS.

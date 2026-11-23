@@ -28,6 +28,11 @@ func signWithP12(app, p12, password string) error {
 	if err != nil {
 		return err
 	}
+	restore, err := k.searchable()
+	if err != nil {
+		return err
+	}
+	defer restore()
 	return signApp(app, id, k.path)
 }
 

@@ -20,8 +20,10 @@
 ## Choices
 
 - **Throwaway keychains.** Signing imports the identity into a keychain in a
-  temporary directory, given to codesign by path and deleted afterwards. It is
-  never added to the search list, so the login keychain is never touched.
+  temporary directory, deleted afterwards: the login keychain is never touched.
+  It joins the user's search list only while codesign runs, and the previous
+  list is put back: macOS 15 codesign cannot find the identity otherwise
+  (`--keychain` alone works on macOS 27).
 - **The PKCS#12 goes through `security export`.** Go's standard library has
   no PKCS#12 encoder, and a file written by OpenSSL 3 (AES by default) is
   refused by older macOS versions.

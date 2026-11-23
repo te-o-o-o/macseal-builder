@@ -34,6 +34,12 @@ func TestParseDesignated(t *testing.T) {
 // build or another identity does not.
 func TestUpdateKeepsRequirement(t *testing.T) {
 	needMacOS(t)
+	before, _ := run("security", "list-keychains", "-d", "user")
+	t.Cleanup(func() {
+		if after, _ := run("security", "list-keychains", "-d", "user"); after != before {
+			t.Errorf("search list not restored:\nbefore %s\nafter  %s", before, after)
+		}
+	})
 	dir := t.TempDir()
 	mine, other := filepath.Join(dir, "mine.p12"), filepath.Join(dir, "other.p12")
 	for _, p := range []string{mine, other} {

@@ -45,6 +45,14 @@ func TestParseIdentity(t *testing.T) {
 	}
 }
 
+func TestParseKeychainList(t *testing.T) {
+	out := "    \"/Users/x/Library/Keychains/login.keychain-db\"\n    \"/Library/Keychains/System.keychain\"\n"
+	got := parseKeychainList(out)
+	if len(got) != 2 || got[0] != "/Users/x/Library/Keychains/login.keychain-db" || got[1] != "/Library/Keychains/System.keychain" {
+		t.Errorf("parseKeychainList = %q", got)
+	}
+}
+
 func TestDoctor(t *testing.T) {
 	needMacOS(t)
 	app := fixtureApp(t, "1.0.0")

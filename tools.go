@@ -34,9 +34,9 @@ func randomHex(n int) string {
 	return hex.EncodeToString(b)
 }
 
-// keychain is a throwaway keychain in its own temporary directory. It is never
-// added to the user's search list: codesign and security get its path
-// explicitly, so the login keychain is never touched.
+// keychain is a throwaway keychain in its own temporary directory, so the
+// login keychain's content is never touched. It joins the search list only
+// while codesign needs it (searchable).
 type keychain struct {
 	dir, path, password string
 }
@@ -70,6 +70,35 @@ func (k *keychain) importP12(file, password string) error {
 	}
 	_, err := run("security", "set-key-partition-list", "-S", "apple-tool:,apple:", "-k", k.password, k.path)
 	return err
+}
+
+// searchable puts the keychain at the head of the user's search list and
+// returns the function that puts the previous list back. macOS 15 codesign
+// fails with "The specified item could not be found in the keychain" when the
+// keychain is only given with --keychain; macOS 27 does not need this.
+// ponytail: two concurrent runs race on the list, add a lock file if CI ever
+// signs in parallel on one machine.
+func (k *keychain) searchable() (restore func(), err error) {
+	out, err := run("security", "list-keychains", "-d", "user")
+	if err != nil {
+		return nil, err
+	}
+	prev := parseKeychainList(out)
+	if _, err := run("security", append([]string{"list-keychains", "-d", "user", "-s", k.path}, prev...)...); err != nil {
+		return nil, err
+	}
+	return func() { run("security", append([]string{"list-keychains", "-d", "user", "-s"}, prev...)...) }, nil
+}
+
+// parseKeychainList reads `security list-keychains`: one quoted path per line.
+func parseKeychainList(out string) []string {
+	var paths []string
+	for _, line := range strings.Split(out, "\n") {
+		if p := strings.Trim(strings.TrimSpace(line), `"`); p != "" {
+			paths = append(paths, p)
+		}
+	}
+	return paths
 }
 
 var identityLine = regexp.MustCompile(`\d+\) ([0-9A-F]{40}) "`)

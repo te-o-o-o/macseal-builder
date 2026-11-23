@@ -41,6 +41,10 @@ go build -o macseal-builder .
 - **A relative keychain name lands in `~/Library/Keychains/`.** `security
   create-keychain test.keychain-db` does not create it in the current
   directory. Always pass an absolute path.
+- **macOS 15 codesign ignores `--keychain` alone**: "The specified item could
+  not be found in the keychain". The keychain must be in the search list while
+  signing (`keychain.searchable`), and the old list put back. macOS 27 signs
+  without it, so only CI showed it.
 - **`security find-identity -v` hides self-signed identities** (they are
   `CSSMERR_TP_NOT_TRUSTED`). Parse the full listing.
 - **`codesign -R` takes `=requirement` for text**, otherwise it reads a file:

@@ -15,7 +15,7 @@
   ad hoc les perd à chaque build.
 - **Une signature dans le bon ordre.** `sign` scelle les helpers, frameworks
   et dylibs imbriqués avant l'app, sans le `--deep` déprécié, dans un trousseau
-  jetable qui ne touche jamais au vôtre.
+  jetable : votre trousseau de session n'est jamais touché.
 - **Un diagnostic avant vos utilisateurs.** `doctor` lit un `.app` et dit ce
   qui va casser : pas de signature, une signature ad hoc, un sceau cassé, un
   drapeau de quarantaine, des clés Info.plist manquantes, une seule

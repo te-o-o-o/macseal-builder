@@ -14,6 +14,7 @@ and `xattr`, which ship with macOS. Decisions and what is verified:
 | `cert.go` | `cert init`: self-signed identity → PKCS#12 | Never overwrite an identity. |
 | `bundle.go` | `bundle`: executable + Info.plist + icon → `.app` | Never replace an existing destination. |
 | `sign.go` | inside-out signing, `nested`, `isMachO`, `readPlist` | Deepest first; no `--deep` to sign. |
+| `dmg.go` | `dmg`: app + `/Applications` link → UDZO image | The app goes in with `ditto`; the image is not signed. |
 | `verify.go` | designated requirement, `verify-update` | |
 | `doctor.go` | read-only audit | Never modifies the app: fixes go in `Fix`. |
 | `fixture_test.go` | builds `testdata/hello` into a real `Hello.app` | |

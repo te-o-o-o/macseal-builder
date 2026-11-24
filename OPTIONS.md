@@ -19,6 +19,12 @@
 - `-adhoc`: sign ad hoc instead, for local builds; macOS forgets the app's permissions at every rebuild.
 - `APP`: the `.app` bundle, re-signed in place, nested code first.
 
+## `dmg`
+
+- `-out FILE.dmg`: the compressed image to create, holding the app and a link to `/Applications`; an existing one is refused.
+- `-volname NAME`: the name the mounted volume shows, the app's name by default.
+- `APP`: the `.app` to put in it, signature kept intact; the image itself is not signed.
+
 ## `doctor`
 
 - `-json`: print the checks as a JSON array of `{name, level, detail, fix}` instead of text.

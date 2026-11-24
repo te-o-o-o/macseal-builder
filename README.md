@@ -17,6 +17,8 @@
 - **Signing done in the right order.** `sign` seals nested helpers, frameworks
   and dylibs before the app, without the deprecated `--deep`, in a throwaway
   keychain: your login keychain is never touched.
+- **A disk image to drag from.** `dmg` packs the app with a link to
+  `/Applications`, signature intact.
 - **A doctor before your users find out.** `doctor` reads a `.app` and reports
   what will break: no signature, an ad-hoc one, a broken seal, a quarantine
   flag, missing Info.plist keys, a single architecture. `-json` for scripts.
@@ -55,6 +57,7 @@ MACSEAL_P12_PASSWORD="$(cat ~/secure/signing.p12.password)" \
   macseal-builder sign -p12 ~/secure/signing.p12 MyApp.app
 
 macseal-builder doctor MyApp.app
+macseal-builder dmg -out MyApp.dmg MyApp.app
 macseal-builder verify-update /Applications/MyApp.app MyApp.app
 ```
 

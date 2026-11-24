@@ -23,6 +23,7 @@ const usage = `macseal-builder: sign and check macOS apps without an Apple Devel
   macseal-builder cert init -name NAME -out FILE.p12
   macseal-builder bundle -exe FILE -plist Info.plist [-icon FILE.icns] [-version X.Y.Z] -out NAME.app
   macseal-builder sign (-p12 FILE.p12 | -adhoc) APP
+  macseal-builder dmg -out FILE.dmg [-volname NAME] APP
   macseal-builder doctor [-json] APP
   macseal-builder verify-update OLD.app NEW.app
 
@@ -51,6 +52,8 @@ func cli(args []string, stdout, stderr io.Writer) int {
 		return cmdBundle(rest, stdout, stderr)
 	case "sign":
 		return cmdSign(rest, stdout, stderr)
+	case "dmg":
+		return cmdDMG(rest, stdout, stderr)
 	case "doctor":
 		return cmdDoctor(rest, stdout, stderr)
 	case "verify-update":

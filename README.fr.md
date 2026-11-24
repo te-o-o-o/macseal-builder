@@ -18,6 +18,8 @@
 - **Une signature dans le bon ordre.** `sign` scelle les helpers, frameworks
   et dylibs imbriqués avant l'app, sans le `--deep` déprécié, dans un trousseau
   jetable : votre trousseau de session n'est jamais touché.
+- **Une image disque à glisser.** `dmg` emballe l'app avec un lien vers
+  `/Applications`, signature intacte.
 - **Un diagnostic avant vos utilisateurs.** `doctor` lit un `.app` et dit ce
   qui va casser : pas de signature, une signature ad hoc, un sceau cassé, un
   drapeau de quarantaine, des clés Info.plist manquantes, une seule
@@ -59,6 +61,7 @@ MACSEAL_P12_PASSWORD="$(cat ~/secure/signing.p12.password)" \
   macseal-builder sign -p12 ~/secure/signing.p12 MonApp.app
 
 macseal-builder doctor MonApp.app
+macseal-builder dmg -out MonApp.dmg MonApp.app
 macseal-builder verify-update /Applications/MonApp.app MonApp.app
 ```
 

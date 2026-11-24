@@ -30,7 +30,7 @@ go build -o macseal-builder .
 ## Conventions
 
 - Commits: Conventional Commits, one line, no body, no trailer. Scopes:
-  `cert`, `sign`, `doctor`, `verify`. None when nothing fits, none on
+  `cert`, `bundle`, `sign`, `dmg`, `doctor`, `verify`. None when nothing fits, none on
   `chore: release X.Y.Z`.
 - Docs come in pairs: `README.md` / `README.fr.md`, `docs/notes.md` /
   `docs/notes.fr.md`, `CHANGELOG.md` / `CHANGELOG.fr.md`.

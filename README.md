@@ -12,6 +12,8 @@
   signing certificate. Sign every release with it and macOS recognises each
   update as the same app: permissions like Accessibility or Screen Recording
   survive, where an ad-hoc signature loses them at every build.
+- **A bundle from what you already have.** `bundle` turns an executable, an
+  Info.plist and an icon into a `.app`, version written in.
 - **Signing done in the right order.** `sign` seals nested helpers, frameworks
   and dylibs before the app, without the deprecated `--deep`, in a throwaway
   keychain: your login keychain is never touched.
@@ -48,6 +50,7 @@ From source: `go install github.com/te-o-o-o/macseal-builder@latest`.
 macseal-builder cert init -name "Your Name" -out ~/secure/signing.p12
 
 # Each release
+macseal-builder bundle -exe dist/myapp -plist Info.plist -icon MyApp.icns -version 1.2.0 -out MyApp.app
 MACSEAL_P12_PASSWORD="$(cat ~/secure/signing.p12.password)" \
   macseal-builder sign -p12 ~/secure/signing.p12 MyApp.app
 

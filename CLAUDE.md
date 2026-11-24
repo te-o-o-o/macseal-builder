@@ -12,6 +12,7 @@ and `xattr`, which ship with macOS. Decisions and what is verified:
 | `main.go` | `cli`, one `cmd*` per subcommand, exit codes | Commands write to the given writers, so tests call `cli` directly. |
 | `tools.go` | `run`, throwaway `keychain` | `run` errors name the tool and subcommand only: arguments can hold passwords. |
 | `cert.go` | `cert init`: self-signed identity → PKCS#12 | Never overwrite an identity. |
+| `bundle.go` | `bundle`: executable + Info.plist + icon → `.app` | Never replace an existing destination. |
 | `sign.go` | inside-out signing, `nested`, `isMachO`, `readPlist` | Deepest first; no `--deep` to sign. |
 | `verify.go` | designated requirement, `verify-update` | |
 | `doctor.go` | read-only audit | Never modifies the app: fixes go in `Fix`. |

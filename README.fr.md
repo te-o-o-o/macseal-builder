@@ -13,6 +13,8 @@
   reconnues par macOS comme la même app : les autorisations comme
   Accessibilité ou Enregistrement de l'écran survivent, là où une signature
   ad hoc les perd à chaque build.
+- **Un bundle à partir de ce que vous avez déjà.** `bundle` fait un `.app`
+  d'un exécutable, d'un Info.plist et d'une icône, version comprise.
 - **Une signature dans le bon ordre.** `sign` scelle les helpers, frameworks
   et dylibs imbriqués avant l'app, sans le `--deep` déprécié, dans un trousseau
   jetable : votre trousseau de session n'est jamais touché.
@@ -52,6 +54,7 @@ Depuis les sources : `go install github.com/te-o-o-o/macseal-builder@latest`.
 macseal-builder cert init -name "Votre Nom" -out ~/secure/signing.p12
 
 # À chaque release
+macseal-builder bundle -exe dist/monapp -plist Info.plist -icon MonApp.icns -version 1.2.0 -out MonApp.app
 MACSEAL_P12_PASSWORD="$(cat ~/secure/signing.p12.password)" \
   macseal-builder sign -p12 ~/secure/signing.p12 MonApp.app
 

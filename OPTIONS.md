@@ -5,6 +5,14 @@
 - `-name NAME`: the certificate's common name, shown by `codesign -dvv` as the authority; usually the developer's name.
 - `-out FILE.p12`: the PKCS#12 identity to create, with its random password written to `FILE.p12.password`; both are `0600`, and an existing file is never replaced.
 
+## `bundle`
+
+- `-exe FILE`: the executable, copied to `Contents/MacOS` under the name `CFBundleExecutable` gives, or its own name when the plist has none; glue it with `lipo` first for a universal app.
+- `-plist FILE`: the Info.plist to start from, copied as is apart from the keys the other options set.
+- `-icon FILE.icns`: optional icon, copied to `Contents/Resources` and named in `CFBundleIconFile`.
+- `-version X.Y.Z`: optional, written to `CFBundleShortVersionString` and `CFBundleVersion`, so the plist can keep a placeholder.
+- `-out NAME.app`: the bundle to create; an existing one is refused, never replaced.
+
 ## `sign`
 
 - `-p12 FILE.p12`: sign with this identity; its password is read from the `MACSEAL_P12_PASSWORD` environment variable, never from a flag, so it stays out of shell history.

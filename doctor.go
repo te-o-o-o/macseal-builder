@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -37,21 +38,23 @@ func doctor(app string) []check {
 	}
 	checks = append(checks, plistChecks(info)...)
 
+	exe := ""
 	if name, _ := info["CFBundleExecutable"].(string); name != "" {
-		exe := filepath.Join(app, "Contents", "MacOS", name)
+		exe = filepath.Join(app, "Contents", "MacOS", name)
 		if _, err := os.Stat(exe); err != nil {
 			add("executable", levelFail, "Contents/MacOS/"+name+" is missing", "")
+			exe = ""
 		} else {
 			checks = append(checks, archCheck(exe))
 		}
 	}
 
-	switch kind, req, err := designated(app); {
+	kind, req, err := designated(app)
+	switch {
 	case err != nil:
 		add("signature", levelFail, err.Error(), "")
 	case kind == reqUnsigned:
-		add("signature", levelFail, "not signed: Apple Silicon kills an unsigned arm64 binary at launch",
-			"macseal-builder sign -adhoc "+app)
+		checks = append(checks, unsignedCheck(app, exe))
 	case kind == reqAdhoc:
 		add("signature", levelWarn, "ad-hoc ("+req+"): macOS forgets granted permissions (Accessibility, Screen Recording…) at every update, and an updater cannot tell a genuine update apart",
 			"macseal-builder sign -p12 FILE.p12 "+app)
@@ -59,19 +62,62 @@ func doctor(app string) []check {
 		add("signature", levelOK, req, "")
 	}
 
-	if out, err := run("codesign", "--verify", "--deep", "--strict", app); err != nil {
-		add("seal", levelFail, "the signature does not match the content: "+strings.TrimSpace(out), "macseal-builder sign … "+app)
-	} else {
-		add("seal", levelOK, "the signature matches the content, nested code included", "")
+	// An unsigned bundle has no seal to check: the signature check said it.
+	if kind != reqUnsigned {
+		if out, err := run("codesign", "--verify", "--deep", "--strict", app); err != nil {
+			add("seal", levelFail, "the signature does not match the content: "+strings.TrimSpace(out), "macseal-builder sign … "+app)
+		} else {
+			add("seal", levelOK, "the signature matches the content, nested code included", "")
+		}
 	}
 
-	if _, err := run("xattr", "-p", "com.apple.quarantine", app); err == nil {
+	if out, err := run("xattr", "-p", "com.apple.quarantine", app); err != nil {
+		add("quarantine", levelOK, "no quarantine flag", "")
+	} else if quarantineApproved(out) {
+		add("quarantine", levelOK, "downloaded by a browser, and the user already allowed it to open", "")
+	} else {
 		add("quarantine", levelWarn, "downloaded by a browser: Gatekeeper blocks the first launch",
 			"xattr -dr com.apple.quarantine "+app)
-	} else {
-		add("quarantine", levelOK, "no quarantine flag", "")
 	}
 	return checks
+}
+
+// unsignedCheck tells a bundle that cannot launch from one that only lacks a
+// seal. The Go and Rust linkers sign arm64 code ad hoc on their own, so a
+// universal binary glued by lipo often has a signed arm64 slice next to an
+// unsigned x86_64 one: it launches everywhere, but nothing seals Info.plist
+// and the resources. Only an unsigned arm64 slice is killed at launch.
+func unsignedCheck(app, exe string) check {
+	fix := "macseal-builder sign -p12 FILE.p12 " + app
+	if exe != "" {
+		for _, arch := range archs(exe) {
+			if !strings.HasPrefix(arch, "arm64") {
+				continue
+			}
+			if out, _ := run("codesign", "-d", "--arch", arch, exe); strings.Contains(out, "not signed at all") {
+				return check{"signature", levelFail, "not signed: Apple Silicon kills an unsigned arm64 binary at launch", fix}
+			}
+		}
+	}
+	return check{"signature", levelWarn, "the bundle is not signed, at most the linker's ad-hoc signature on the binary: Info.plist and resources are not sealed, and macOS forgets granted permissions at every update", fix}
+}
+
+// quarantineApproved reads the flags, the first field of the quarantine
+// attribute, in hex. 0x40 is set once the user has opened the app through
+// Gatekeeper's prompt: "0081;…" is a fresh download, "01c1;…" was seen on an
+// app the user had already opened.
+func quarantineApproved(value string) bool {
+	field, _, _ := strings.Cut(strings.TrimSpace(value), ";")
+	flags, err := strconv.ParseUint(field, 16, 32)
+	return err == nil && flags&0x40 != 0
+}
+
+func archs(exe string) []string {
+	out, err := run("lipo", "-archs", exe)
+	if err != nil {
+		return nil
+	}
+	return strings.Fields(out)
 }
 
 // plistChecks covers the Info.plist keys whose absence breaks the app or its
@@ -101,13 +147,12 @@ func plistChecks(info map[string]any) []check {
 }
 
 func archCheck(exe string) check {
-	out, err := run("lipo", "-archs", exe)
-	if err != nil {
-		return check{"architectures", levelFail, "not a Mach-O executable: " + err.Error(), ""}
+	list := archs(exe)
+	if len(list) == 0 {
+		return check{"architectures", levelFail, "not a Mach-O executable", ""}
 	}
-	archs := strings.Fields(out)
 	has := func(a string) bool {
-		for _, x := range archs {
+		for _, x := range list {
 			if strings.HasPrefix(x, a) { // arm64e counts as arm64
 				return true
 			}
@@ -116,11 +161,11 @@ func archCheck(exe string) check {
 	}
 	switch {
 	case has("arm64") && has("x86_64"):
-		return check{"architectures", levelOK, "universal: " + strings.Join(archs, " "), ""}
+		return check{"architectures", levelOK, "universal: " + strings.Join(list, " "), ""}
 	case has("arm64"):
 		return check{"architectures", levelWarn, "arm64 only: Intel Macs cannot run it", "lipo -create arm64-binary x86_64-binary -output universal-binary"}
 	default:
-		return check{"architectures", levelWarn, strings.Join(archs, " ") + " only: Apple Silicon runs it under Rosetta, which Apple is phasing out", "lipo -create arm64-binary x86_64-binary -output universal-binary"}
+		return check{"architectures", levelWarn, strings.Join(list, " ") + " only: Apple Silicon runs it under Rosetta, which Apple is phasing out", "lipo -create arm64-binary x86_64-binary -output universal-binary"}
 	}
 }
 

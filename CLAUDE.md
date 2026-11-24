@@ -45,6 +45,12 @@ go build -o macseal-builder .
   not be found in the keychain". The keychain must be in the search list while
   signing (`keychain.searchable`), and the old list put back. macOS 27 signs
   without it, so only CI showed it.
+- **A `lipo`-glued universal binary is half signed.** The Go and Rust linkers
+  sign arm64 ad hoc, not x86_64, and nothing seals the bundle: `codesign`
+  says "not signed at all" for the app, yet it launches (copycopy 0.7.0).
+  Judge each slice (`unsignedCheck`).
+- **Quarantine flag `0x40` means already approved** (`01c1;…` after the user
+  opened it, `0081;…` before). Only warn without it.
 - **`security find-identity -v` hides self-signed identities** (they are
   `CSSMERR_TP_NOT_TRUSTED`). Parse the full listing.
 - **`codesign -R` takes `=requirement` for text**, otherwise it reads a file:

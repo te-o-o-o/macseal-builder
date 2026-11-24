@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 )
@@ -88,6 +89,47 @@ func TestDoctor(t *testing.T) {
 	var parsed []check
 	if err := json.Unmarshal(stdout.Bytes(), &parsed); err != nil || len(parsed) == 0 {
 		t.Errorf("-json output: %v\n%s", err, stdout.String())
+	}
+}
+
+func TestQuarantineApproved(t *testing.T) {
+	for value, want := range map[string]bool{
+		"0081;6b055a99;Safari;": false,
+		"01c1;6b055a99;Zen;8A4692CD-84E2-4B66-8513-6CC0A70A0E55\n": true,
+		"00c1;6b055a99;Chrome;": true,
+		"garbage":               false,
+	} {
+		if got := quarantineApproved(value); got != want {
+			t.Errorf("quarantineApproved(%q) = %v, want %v", value, got, want)
+		}
+	}
+}
+
+// TestDoctorLinkerSignedUniversal is copycopy 0.7.0: lipo glued a
+// linker-signed arm64 slice to an unsigned x86_64 one and nothing signed the
+// bundle. It launches, so it is a warning, not a failure.
+func TestDoctorLinkerSignedUniversal(t *testing.T) {
+	needMacOS(t)
+	app := fixtureApp(t, "1.0.0")
+	exe := filepath.Join(app, "Contents", "MacOS", "hello")
+	amd := filepath.Join(t.TempDir(), "hello-amd64")
+	cmd := exec.Command("go", "build", "-o", amd, "./testdata/hello")
+	cmd.Env = append(os.Environ(), "GOARCH=amd64")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("%v: %s", err, out)
+	}
+	if _, err := run("lipo", "-create", "-output", exe, exe, amd); err != nil {
+		t.Fatal(err)
+	}
+	checks := doctor(app)
+	if got := level(checks, "signature"); got != levelWarn {
+		t.Errorf("signature = %s, want warn", got)
+	}
+	if got := level(checks, "seal"); got != "absent" {
+		t.Errorf("seal reported on an unsigned bundle: %s", got)
+	}
+	if got := level(checks, "architectures"); got != levelOK {
+		t.Errorf("architectures = %s, want ok (universal)", got)
 	}
 }
 

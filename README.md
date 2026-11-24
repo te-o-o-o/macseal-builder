@@ -49,18 +49,19 @@ From source: `go install github.com/te-o-o-o/macseal-builder@latest`.
 ## Usage
 
 ```bash
-# Once per developer, for all your apps. Back up both files.
-macseal-builder cert init -name "Your Name" -out ~/secure/signing.p12
-
-# Each release
 macseal-builder bundle -exe dist/myapp -plist Info.plist -icon MyApp.icns -version 1.2.0 -out MyApp.app
-MACSEAL_P12_PASSWORD="$(cat ~/secure/signing.p12.password)" \
-  macseal-builder sign -p12 ~/secure/signing.p12 MyApp.app
+macseal-builder sign -name "Your Name" MyApp.app
 
 macseal-builder doctor MyApp.app
 macseal-builder dmg -out MyApp.dmg MyApp.app
 macseal-builder verify-update /Applications/MyApp.app MyApp.app
 ```
+
+The first `sign` creates your identity in
+`~/Library/Application Support/macseal-builder/` and says so: back it up, it
+signs all your apps from then on. In CI, pass it from secrets with
+`-p12` and `MACSEAL_P12_PASSWORD`; `sign` never creates one there.
+`cert init` creates an identity somewhere else, if you prefer.
 
 Exit codes: `0` passed, `1` a check failed, `2` the command could not run.
 Every option: [OPTIONS.md](OPTIONS.md). How it works and what is verified:

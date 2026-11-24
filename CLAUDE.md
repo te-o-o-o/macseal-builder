@@ -13,6 +13,7 @@ and `xattr`, which ship with macOS. Decisions and what is verified:
 | `tools.go` | `run`, throwaway `keychain` | `run` errors name the tool and subcommand only: arguments can hold passwords. |
 | `cert.go` | `cert init`: self-signed identity → PKCS#12 | Never overwrite an identity. |
 | `bundle.go` | `bundle`: executable + Info.plist + icon → `.app` | Never replace an existing destination. |
+| `home.go` | home folder, `config.json`, the identity `sign` uses by default | Never create an identity in CI, never replace one the config names. |
 | `sign.go` | inside-out signing, `nested`, `isMachO`, `readPlist` | Deepest first; no `--deep` to sign. |
 | `dmg.go` | `dmg`: app + `/Applications` link → UDZO image | The app goes in with `ditto`; the image is not signed. |
 | `links.go` | where `dyld` would find each library, the `libraries` check | `otool` never sees a path with parentheses (`otool()`). |

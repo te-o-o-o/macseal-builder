@@ -22,12 +22,14 @@ const usage = `macseal-builder: sign and check macOS apps without an Apple Devel
 
   macseal-builder cert init -name NAME -out FILE.p12
   macseal-builder bundle -exe FILE -plist Info.plist [-icon FILE.icns] [-version X.Y.Z] -out NAME.app
-  macseal-builder sign (-p12 FILE.p12 | -adhoc) APP
+  macseal-builder sign [-p12 FILE.p12 | -adhoc] [-name NAME] APP
   macseal-builder dmg -out FILE.dmg [-volname NAME] APP
   macseal-builder doctor [-json] APP
   macseal-builder verify-update OLD.app NEW.app
 
-The PKCS#12 password is read from MACSEAL_P12_PASSWORD, never from a flag.
+Without -p12, sign uses the identity in ~/Library/Application Support/macseal-builder
+(or MACSEAL_HOME) and creates it on first use, never in CI. The PKCS#12
+password comes from MACSEAL_P12_PASSWORD or FILE.p12.password, never a flag.
 Every option: OPTIONS.md.
 `
 
@@ -99,22 +101,39 @@ For GitHub Actions:
 
 func cmdSign(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("sign", stderr)
-	p12 := fs.String("p12", "", "PKCS#12 identity to sign with (password in MACSEAL_P12_PASSWORD)")
+	p12 := fs.String("p12", "", "PKCS#12 identity to sign with, instead of the one in the home folder")
 	adhoc := fs.Bool("adhoc", false, "ad-hoc signature, for local builds: permissions do not survive a rebuild")
-	if fs.Parse(args) != nil || fs.NArg() != 1 || (*p12 == "") == !*adhoc {
-		fmt.Fprint(stderr, "usage: macseal-builder sign (-p12 FILE.p12 | -adhoc) APP\n")
+	name := fs.String("name", "", "the name of the identity created on first use, the login name by default")
+	if fs.Parse(args) != nil || fs.NArg() != 1 || (*p12 != "" && *adhoc) {
+		fmt.Fprint(stderr, signUsage)
 		return exitUsage
 	}
 	app := fs.Arg(0)
-	var err error
 	if *adhoc {
-		err = signApp(app, "-", "")
+		if err := signApp(app, "-", ""); err != nil {
+			fmt.Fprintln(stderr, err)
+			return exitFailed
+		}
 	} else {
-		err = signWithP12(app, *p12, os.Getenv("MACSEAL_P12_PASSWORD"))
-	}
-	if err != nil {
-		fmt.Fprintln(stderr, err)
-		return exitFailed
+		if *p12 == "" {
+			var created bool
+			var err error
+			if *p12, created, err = defaultIdentity(*name); err != nil {
+				fmt.Fprintln(stderr, err)
+				return exitFailed
+			}
+			if created {
+				fmt.Fprintf(stdout, `created a signing identity: %[1]s and %[1]s.password
+Back both up outside this machine now: every app signed with it refuses an
+update signed with another one, and macOS forgets its permissions.
+
+`, *p12)
+			}
+		}
+		if err := signWithP12(app, *p12, p12Password(*p12)); err != nil {
+			fmt.Fprintln(stderr, err)
+			return exitFailed
+		}
 	}
 	kind, req, err := designated(app)
 	if err != nil {
@@ -124,3 +143,5 @@ func cmdSign(args []string, stdout, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "signed %s (%s)\n  %s\n", app, kind, req)
 	return exitOK
 }
+
+const signUsage = "usage: macseal-builder sign [-p12 FILE.p12 | -adhoc] [-name NAME] APP\n"

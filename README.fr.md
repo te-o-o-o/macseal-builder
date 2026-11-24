@@ -52,18 +52,19 @@ Depuis les sources : `go install github.com/te-o-o-o/macseal-builder@latest`.
 ## Utilisation
 
 ```bash
-# Une fois par développeur, pour toutes vos apps. Sauvegardez les deux fichiers.
-macseal-builder cert init -name "Votre Nom" -out ~/secure/signing.p12
-
-# À chaque release
 macseal-builder bundle -exe dist/monapp -plist Info.plist -icon MonApp.icns -version 1.2.0 -out MonApp.app
-MACSEAL_P12_PASSWORD="$(cat ~/secure/signing.p12.password)" \
-  macseal-builder sign -p12 ~/secure/signing.p12 MonApp.app
+macseal-builder sign -name "Votre Nom" MonApp.app
 
 macseal-builder doctor MonApp.app
 macseal-builder dmg -out MonApp.dmg MonApp.app
 macseal-builder verify-update /Applications/MonApp.app MonApp.app
 ```
+
+Le premier `sign` crée votre identité dans
+`~/Library/Application Support/macseal-builder/` et le dit : sauvegardez-la,
+elle signe toutes vos apps à partir de là. En CI, passez-la depuis les secrets
+avec `-p12` et `MACSEAL_P12_PASSWORD` ; `sign` n'en crée jamais là.
+`cert init` crée une identité ailleurs, si vous préférez.
 
 Codes de sortie : `0` réussi, `1` une vérification a échoué, `2` la commande
 n'a pas pu s'exécuter. Toutes les options : [OPTIONS.md](OPTIONS.md).

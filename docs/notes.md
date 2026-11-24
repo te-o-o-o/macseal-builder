@@ -24,6 +24,11 @@
   It joins the user's search list only while codesign runs, and the previous
   list is put back: macOS 15 codesign cannot find the identity otherwise
   (`--keychain` alone works on macOS 27).
+- **`sign` sets itself up.** Without `-p12`, it uses the identity named by
+  `config.json` in `~/Library/Application Support/macseal-builder`, created
+  on first use. The config only holds that path, so the identity can move to
+  a backed-up folder. A lost identity is an error, not a fresh one: a new
+  identity would make every installed copy refuse the next update.
 - **The PKCS#12 goes through `security export`.** Go's standard library has
   no PKCS#12 encoder, and a file written by OpenSSL 3 (AES by default) is
   refused by older macOS versions.

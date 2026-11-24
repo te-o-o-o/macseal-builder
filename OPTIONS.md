@@ -15,8 +15,10 @@
 
 ## `sign`
 
-- `-p12 FILE.p12`: sign with this identity; its password is read from the `MACSEAL_P12_PASSWORD` environment variable, never from a flag, so it stays out of shell history.
+- no `-p12` and no `-adhoc`: sign with the identity `config.json` names in the home folder (`~/Library/Application Support/macseal-builder`, or `MACSEAL_HOME`); the first run creates the folder, the identity and the config, never in CI (`CI` set), and a missing identity is an error, never replaced.
+- `-p12 FILE.p12`: sign with this identity instead; its password comes from `MACSEAL_P12_PASSWORD`, or else from `FILE.p12.password`, never from a flag, so it stays out of shell history.
 - `-adhoc`: sign ad hoc instead, for local builds; macOS forgets the app's permissions at every rebuild.
+- `-name NAME`: the certificate name of the identity created on first use, the login name by default; ignored afterwards.
 - `APP`: the `.app` bundle, re-signed in place, nested code first.
 
 ## `dmg`

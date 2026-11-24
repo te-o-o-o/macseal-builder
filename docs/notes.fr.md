@@ -28,6 +28,12 @@
   temps de codesign, puis la liste d'avant est remise : codesign sous
   macOS 15 ne trouve pas l'identité sinon (`--keychain` seul suffit sous
   macOS 27).
+- **`sign` s'installe tout seul.** Sans `-p12`, il prend l'identité que
+  désigne `config.json` dans `~/Library/Application Support/macseal-builder`,
+  créée au premier usage. La config ne contient que ce chemin : l'identité
+  peut aller dans un dossier sauvegardé. Une identité perdue est une erreur,
+  pas une nouvelle : une nouvelle identité ferait refuser la prochaine mise à
+  jour par toutes les copies installées.
 - **Le PKCS#12 passe par `security export`.** La bibliothèque standard de Go
   n'a pas d'encodeur PKCS#12, et un fichier écrit par OpenSSL 3 (AES par
   défaut) est refusé par les anciennes versions de macOS.

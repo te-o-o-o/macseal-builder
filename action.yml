@@ -1,0 +1,115 @@
+name: macseal-builder
+description: Bundle, sign and pack a macOS app with a stable self-signed identity, then check it.
+branding:
+  icon: lock
+  color: gray-dark
+
+inputs:
+  app:
+    description: An existing .app to sign (Tauri, Electron, Xcode). Give this or exe + plist.
+    default: ""
+  exe:
+    description: The executable to bundle, already universal if it should be.
+    default: ""
+  plist:
+    description: The Info.plist to start from, with exe.
+    default: ""
+  icon:
+    description: An .icns icon, with exe.
+    default: ""
+  version:
+    description: Written to CFBundleShortVersionString and CFBundleVersion, with exe.
+    default: ""
+  out:
+    description: Where the bundle goes, with exe. Defaults to <exe name>.app next to the executable.
+    default: ""
+  dmg:
+    description: A .dmg to create from the signed app (optional).
+    default: ""
+  p12:
+    description: The signing identity, base64-encoded (secrets.MACOS_CERT_P12).
+    required: true
+  password:
+    description: Its password (secrets.MACOS_CERT_PASSWORD).
+    required: true
+
+outputs:
+  app:
+    description: The signed .app.
+    value: ${{ steps.paths.outputs.app }}
+  dmg:
+    description: The .dmg, when one was asked for.
+    value: ${{ inputs.dmg }}
+
+runs:
+  using: composite
+  steps:
+    # Built from the action's own checkout, so the tool is exactly the
+    # version the workflow pinned. The latest Go: Go 1.22's linker writes
+    # binaries macOS refuses to run ("missing LC_UUID").
+    - uses: actions/setup-go@v6
+      with:
+        go-version: stable
+        cache: false
+    - shell: bash
+      working-directory: ${{ github.action_path }}
+      run: go build -trimpath -o "$RUNNER_TEMP/macseal-builder" .
+
+    - id: paths
+      shell: bash
+      env:
+        APP: ${{ inputs.app }}
+        EXE: ${{ inputs.exe }}
+        PLIST: ${{ inputs.plist }}
+        OUT: ${{ inputs.out }}
+      run: |
+        if [ -n "$APP" ] && [ -n "$EXE" ]; then
+          echo "::error::give app or exe, not both"; exit 1
+        fi
+        if [ -z "$APP" ] && { [ -z "$EXE" ] || [ -z "$PLIST" ]; }; then
+          echo "::error::give app, or exe and plist"; exit 1
+        fi
+        if [ -z "$APP" ]; then
+          APP=${OUT:-$(dirname "$EXE")/$(basename "$EXE").app}
+        fi
+        echo "app=$APP" >> "$GITHUB_OUTPUT"
+
+    - if: inputs.exe != ''
+      shell: bash
+      env:
+        EXE: ${{ inputs.exe }}
+        PLIST: ${{ inputs.plist }}
+        ICON: ${{ inputs.icon }}
+        VERSION: ${{ inputs.version }}
+        APP: ${{ steps.paths.outputs.app }}
+      run: |
+        args=(-exe "$EXE" -plist "$PLIST" -out "$APP")
+        [ -n "$ICON" ] && args+=(-icon "$ICON")
+        [ -n "$VERSION" ] && args+=(-version "$VERSION")
+        "$RUNNER_TEMP/macseal-builder" bundle "${args[@]}"
+
+    # The identity only exists on disk for this step, readable by the runner
+    # user alone, and is removed even when signing fails.
+    - shell: bash
+      env:
+        P12: ${{ inputs.p12 }}
+        MACSEAL_P12_PASSWORD: ${{ inputs.password }}
+        APP: ${{ steps.paths.outputs.app }}
+      run: |
+        umask 077
+        identity="$RUNNER_TEMP/macseal-identity.p12"
+        trap 'rm -f "$identity"' EXIT
+        printf '%s' "$P12" | base64 --decode > "$identity"
+        "$RUNNER_TEMP/macseal-builder" sign -p12 "$identity" "$APP"
+
+    - shell: bash
+      env:
+        APP: ${{ steps.paths.outputs.app }}
+      run: '"$RUNNER_TEMP/macseal-builder" doctor "$APP"'
+
+    - if: inputs.dmg != ''
+      shell: bash
+      env:
+        APP: ${{ steps.paths.outputs.app }}
+        DMG: ${{ inputs.dmg }}
+      run: '"$RUNNER_TEMP/macseal-builder" dmg -out "$DMG" "$APP"'

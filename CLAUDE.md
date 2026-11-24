@@ -19,6 +19,7 @@ and `xattr`, which ship with macOS. Decisions and what is verified:
 | `links.go` | where `dyld` would find each library, the `libraries` check | `otool` never sees a path with parentheses (`otool()`). |
 | `verify.go` | designated requirement, `verify-update` | |
 | `doctor.go` | read-only audit | Never modifies the app: fixes go in `Fix`. |
+| `action.yml` | the GitHub Action: builds the tool from its own checkout, then bundle → sign → doctor → dmg | Tested by `.github/workflows/action.yml`, twice, with `verify-update`. |
 | `fixture_test.go` | builds `testdata/hello` into a real `Hello.app` | |
 | `OPTIONS.md` | every option in one sentence | Update it with every flag. |
 

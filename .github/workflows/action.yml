@@ -1,0 +1,62 @@
+name: action
+
+on: [push, pull_request]
+
+jobs:
+  # Runs the action as a user would, twice, and checks the second build
+  # keeps the first one's requirement: the promise of the whole tool.
+  action:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - id: identity
+        run: |
+          go build -o "$RUNNER_TEMP/msb" .
+          "$RUNNER_TEMP/msb" cert init -name "macseal action test" -out "$RUNNER_TEMP/test.p12"
+          # A throwaway identity, masked all the same: logs show `with:` inputs.
+          echo "::add-mask::$(cat "$RUNNER_TEMP/test.p12.password")"
+          echo "::add-mask::$(base64 -i "$RUNNER_TEMP/test.p12" | tr -d '\n')"
+          {
+            echo "p12=$(base64 -i "$RUNNER_TEMP/test.p12" | tr -d '\n')"
+            echo "password=$(cat "$RUNNER_TEMP/test.p12.password")"
+          } >> "$GITHUB_OUTPUT"
+          mkdir -p build/v1 build/v2
+          go build -o build/v1/hello ./testdata/hello
+          cp build/v1/hello build/v2/hello
+          sed -e 's/VERSION/0.0.0/' -e '/CFBundleExecutable/d' > build/Info.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+          <key>CFBundleIdentifier</key><string>io.github.te-o-o-o.hello</string>
+          <key>CFBundleExecutable</key><string>hello</string>
+          <key>CFBundlePackageType</key><string>APPL</string>
+          <key>CFBundleShortVersionString</key><string>VERSION</string>
+          <key>LSMinimumSystemVersion</key><string>11.0</string>
+          </dict></plist>
+          PLIST
+      - id: v1
+        uses: ./
+        with:
+          exe: build/v1/hello
+          plist: build/Info.plist
+          version: 1.0.0
+          out: build/v1/Hello.app
+          p12: ${{ steps.identity.outputs.p12 }}
+          password: ${{ steps.identity.outputs.password }}
+      - id: v2
+        uses: ./
+        with:
+          exe: build/v2/hello
+          plist: build/Info.plist
+          version: 2.0.0
+          out: build/v2/Hello.app
+          dmg: build/Hello.dmg
+          p12: ${{ steps.identity.outputs.p12 }}
+          password: ${{ steps.identity.outputs.password }}
+      - run: |
+          "$RUNNER_TEMP/msb" verify-update "${{ steps.v1.outputs.app }}" "${{ steps.v2.outputs.app }}"
+          test -f "${{ steps.v2.outputs.dmg }}"
+          test ! -e "$RUNNER_TEMP/macseal-identity.p12"

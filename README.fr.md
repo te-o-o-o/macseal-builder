@@ -70,6 +70,23 @@ Codes de sortie : `0` réussi, `1` une vérification a échoué, `2` la commande
 n'a pas pu s'exécuter. Toutes les options : [OPTIONS.md](OPTIONS.md).
 Fonctionnement et vérifications : [docs/notes.fr.md](docs/notes.fr.md).
 
+## GitHub Actions
+
+```yaml
+- uses: te-o-o-o/macseal-builder@main
+  with:
+    exe: dist/monapp                # ou  app: chemin/vers/MonApp.app
+    plist: packaging/Info.plist
+    icon: MonApp.icns
+    version: 1.2.0
+    dmg: dist/MonApp.dmg
+    p12: ${{ secrets.MACOS_CERT_P12 }}          # base64 -i identity.p12 | gh secret set MACOS_CERT_P12
+    password: ${{ secrets.MACOS_CERT_PASSWORD }} # gh secret set MACOS_CERT_PASSWORD < identity.p12.password
+```
+
+Elle assemble le bundle (avec `exe`), signe, lance `doctor`, qui fait échouer
+le job sur un `fail`, et crée l'image disque. Sorties : `app`, `dmg`.
+
 ## Développement
 
 ```bash

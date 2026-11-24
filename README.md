@@ -67,6 +67,23 @@ Exit codes: `0` passed, `1` a check failed, `2` the command could not run.
 Every option: [OPTIONS.md](OPTIONS.md). How it works and what is verified:
 [docs/notes.md](docs/notes.md).
 
+## GitHub Actions
+
+```yaml
+- uses: te-o-o-o/macseal-builder@main
+  with:
+    exe: dist/myapp                 # or  app: path/to/MyApp.app
+    plist: packaging/Info.plist
+    icon: MyApp.icns
+    version: 1.2.0
+    dmg: dist/MyApp.dmg
+    p12: ${{ secrets.MACOS_CERT_P12 }}          # base64 -i identity.p12 | gh secret set MACOS_CERT_P12
+    password: ${{ secrets.MACOS_CERT_PASSWORD }} # gh secret set MACOS_CERT_PASSWORD < identity.p12.password
+```
+
+It bundles (with `exe`), signs, runs `doctor`, which fails the job on a
+`fail`, and packs the disk image. Outputs: `app`, `dmg`.
+
 ## Development
 
 ```bash

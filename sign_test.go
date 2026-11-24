@@ -74,9 +74,24 @@ func TestNestedDeepestFirst(t *testing.T) {
 	}
 }
 
+// obsidianFinderInfo is the value read on the installed Obsidian.app. An
+// all-zero one is dropped by macOS and would test nothing.
+const obsidianFinderInfo = "0000000000000000040000000000000000000000000000000000000000000000"
+
 func TestSignAdhocThenCertificate(t *testing.T) {
 	needMacOS(t)
 	app := fixtureApp(t, "1.0.0")
+	if err := signApp(app, "-", ""); err != nil {
+		t.Fatal(err)
+	}
+	// Finder info on the bundle folder, as on the installed Obsidian.app:
+	// codesign refuses to sign or verify it until it is cleared.
+	if _, err := run("xattr", "-wx", "com.apple.FinderInfo", obsidianFinderInfo, app); err != nil {
+		t.Fatal(err)
+	}
+	if c := doctor(app); level(c, "seal") != levelWarn {
+		t.Errorf("detritus: seal = %s, want warn", level(c, "seal"))
+	}
 	if err := signApp(app, "-", ""); err != nil {
 		t.Fatal(err)
 	}

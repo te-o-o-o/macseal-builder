@@ -52,6 +52,12 @@ func signApp(app, identity, keychain string) error {
 	if err != nil {
 		return err
 	}
+	// codesign refuses a bundle carrying Finder info or resource forks
+	// ("detritus not allowed"); a copy through Finder or a zip adds them.
+	// They mean nothing to the app, so they go.
+	if _, err := run("xattr", "-cr", app); err != nil {
+		return err
+	}
 	for _, p := range append(parts, app) {
 		args := []string{"--force", "--sign", identity, "--preserve-metadata=entitlements"}
 		if keychain != "" {

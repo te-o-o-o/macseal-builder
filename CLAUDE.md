@@ -60,6 +60,9 @@ go build -o macseal-builder .
 - **`@executable_path` is the running process**, a helper as well as the app,
   and a library searches its loader's rpaths too: resolving everything from
   the main executable gave false "found nowhere" on Electron.
+- **Finder info on the bundle folder blocks codesign** ("detritus not
+  allowed"), seen on the installed Obsidian.app. `sign` runs `xattr -cr`
+  first. An all-zero `FinderInfo` is dropped by macOS: tests use a real value.
 - **`security find-identity -v` hides self-signed identities** (they are
   `CSSMERR_TP_NOT_TRUSTED`). Parse the full listing.
 - **`codesign -R` takes `=requirement` for text**, otherwise it reads a file:

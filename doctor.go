@@ -64,7 +64,10 @@ func doctor(app string) []check {
 
 	// An unsigned bundle has no seal to check: the signature check said it.
 	if kind != reqUnsigned {
-		if out, err := run("codesign", "--verify", "--deep", "--strict", app); err != nil {
+		if out, err := run("codesign", "--verify", "--deep", "--strict", app); err != nil && strings.Contains(out, "detritus") {
+			add("seal", levelWarn, "extended attributes (Finder info, resource forks) sit in the bundle: macOS still runs it, codesign refuses to sign it until they are cleared",
+				"xattr -cr "+app+", or macseal-builder sign, which clears them")
+		} else if err != nil {
 			add("seal", levelFail, "the signature does not match the content: "+strings.TrimSpace(out), "macseal-builder sign … "+app)
 		} else {
 			add("seal", levelOK, "the signature matches the content, nested code included", "")

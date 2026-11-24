@@ -21,7 +21,8 @@
   `/Applications`, signature intact.
 - **A doctor before your users find out.** `doctor` reads a `.app` and reports
   what will break: no signature, an ad-hoc one, a broken seal, a quarantine
-  flag, missing Info.plist keys, a single architecture. `-json` for scripts.
+  flag, missing Info.plist keys, a single architecture, a library only your Mac
+  has. `-json` for scripts.
 - **A safe updater check.** `verify-update OLD.app NEW.app` says whether the
   new build can replace the old one and keep what users granted. It is the
   check an updater should run before swapping the app.

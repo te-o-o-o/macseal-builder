@@ -8,5 +8,5 @@
 - `bundle` assembles a `.app` from an executable, an Info.plist and an icon, with the version written in.
 - `sign` signs an app and everything nested in it, with that identity or ad hoc, in a throwaway keychain.
 - `dmg` packs a signed app into a disk image with a link to `/Applications`.
-- `doctor` reports what will break in an app: signature, seal, quarantine, Info.plist keys, architectures, as text or JSON.
+- `doctor` reports what will break in an app: signature, seal, quarantine, Info.plist keys, architectures, as text or JSON, including libraries only the build machine has.
 - `verify-update` says whether a new build keeps the permissions granted to the installed one.

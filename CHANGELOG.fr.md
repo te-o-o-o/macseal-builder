@@ -8,5 +8,5 @@
 - `bundle` assemble un `.app` à partir d'un exécutable, d'un Info.plist et d'une icône, version comprise.
 - `sign` signe une app et tout ce qu'elle contient, avec cette identité ou ad hoc, dans un trousseau jetable.
 - `dmg` emballe une app signée dans une image disque avec un lien vers `/Applications`.
-- `doctor` dit ce qui va casser dans une app : signature, sceau, quarantaine, clés Info.plist, architectures, en texte ou en JSON.
+- `doctor` dit ce qui va casser dans une app : signature, sceau, quarantaine, clés Info.plist, architectures, en texte ou en JSON, y compris les bibliothèques que seule la machine de build possède.
 - `verify-update` dit si une nouvelle build garde les autorisations données à celle installée.

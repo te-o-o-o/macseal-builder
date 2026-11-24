@@ -15,6 +15,7 @@ and `xattr`, which ship with macOS. Decisions and what is verified:
 | `bundle.go` | `bundle`: executable + Info.plist + icon → `.app` | Never replace an existing destination. |
 | `sign.go` | inside-out signing, `nested`, `isMachO`, `readPlist` | Deepest first; no `--deep` to sign. |
 | `dmg.go` | `dmg`: app + `/Applications` link → UDZO image | The app goes in with `ditto`; the image is not signed. |
+| `links.go` | where `dyld` would find each library, the `libraries` check | `otool` never sees a path with parentheses (`otool()`). |
 | `verify.go` | designated requirement, `verify-update` | |
 | `doctor.go` | read-only audit | Never modifies the app: fixes go in `Fix`. |
 | `fixture_test.go` | builds `testdata/hello` into a real `Hello.app` | |
@@ -53,6 +54,12 @@ go build -o macseal-builder .
   Judge each slice (`unsignedCheck`).
 - **Quarantine flag `0x40` means already approved** (`01c1;…` after the user
   opened it, `0081;…` before). Only warn without it.
+- **`otool` reads `Helper (GPU)` as an archive member** (`lib.a(member.o)`)
+  and fails on every Electron helper: go through `otool()`, which hands it a
+  symlink.
+- **`@executable_path` is the running process**, a helper as well as the app,
+  and a library searches its loader's rpaths too: resolving everything from
+  the main executable gave false "found nowhere" on Electron.
 - **`security find-identity -v` hides self-signed identities** (they are
   `CSSMERR_TP_NOT_TRUSTED`). Parse the full listing.
 - **`codesign -R` takes `=requirement` for text**, otherwise it reads a file:

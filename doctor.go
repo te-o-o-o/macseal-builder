@@ -45,7 +45,7 @@ func doctor(app string) []check {
 			add("executable", levelFail, "Contents/MacOS/"+name+" is missing", "")
 			exe = ""
 		} else {
-			checks = append(checks, archCheck(exe))
+			checks = append(checks, archCheck(exe), linkCheck(app, exe))
 		}
 	}
 

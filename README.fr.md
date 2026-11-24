@@ -23,7 +23,7 @@
 - **Un diagnostic avant vos utilisateurs.** `doctor` lit un `.app` et dit ce
   qui va casser : pas de signature, une signature ad hoc, un sceau cassé, un
   drapeau de quarantaine, des clés Info.plist manquantes, une seule
-  architecture. `-json` pour les scripts.
+  architecture, une bibliothèque que seul votre Mac possède. `-json` pour les scripts.
 - **Une vérification de mise à jour sûre.** `verify-update ANCIEN.app NOUVEAU.app`
   dit si la nouvelle build peut remplacer l'ancienne en gardant ce que les
   utilisateurs ont autorisé. C'est le test qu'un updater doit faire avant de

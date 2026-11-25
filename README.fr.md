@@ -2,7 +2,7 @@
 
 <p align="center">Distribuer une app macOS sans la taxe Apple à 99 $, et sans réautoriser Accessibilité à chaque mise à jour.</p>
 
-<p align="center"><sub>v0.1.0 · Go, zéro dépendance · macOS · MIT</sub></p>
+<p align="center"><sub>v0.1.1 · Go, zéro dépendance · macOS · MIT</sub></p>
 
 <p align="center"><a href="#fonctionnalités">Fonctionnalités</a> · <a href="#installation">Installation</a> · <a href="#utilisation">Utilisation</a> · <a href="#développement">Développement</a> · <a href="README.md">English</a></p>
 

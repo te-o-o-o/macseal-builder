@@ -1,6 +1,6 @@
 # Changements
 
-## 0.1.1 (pas encore publiée)
+## 0.1.1 (2026-11-25)
 
 ### Corrigé
 

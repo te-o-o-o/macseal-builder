@@ -50,7 +50,7 @@
 |---|---|---|
 | Deux builds signées avec la même identité auto-signée satisfont l'exigence l'une de l'autre ; une build ad hoc ou une autre identité, non | `TestUpdateKeepsRequirement`, et à la main sur des copies de copycopy 0.6.0 | macOS 27.2.1, Apple Silicon |
 | La signature et la création d'identité se font sans aucun dialogue | `go test`, et à la main | macOS 27.2.1, Apple Silicon |
-| **TCC garde l'autorisation Accessibilité entre deux builds signées avec la même identité** | **pas encore vérifié** : installer, autoriser, installer la build suivante, utiliser l'autorisation | |
+| TCC garde l'autorisation Accessibilité entre deux builds signées avec la même identité | à la main : wrkspaces 0.1.8 installée et autorisée, 0.1.9 installée par-dessus, `verify-update` passé, l'Accessibilité marche toujours sans rien redemander | macOS 27.2.1, Apple Silicon |
 | Mac Intel, anciennes versions de macOS | pas lancé | |
 
 La CI sur `macos-15` lance les mêmes tests : elle montre qu'ils passent là,

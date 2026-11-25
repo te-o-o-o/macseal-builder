@@ -44,7 +44,7 @@
 |---|---|---|
 | Two builds signed with one self-signed identity satisfy each other's requirement; an ad-hoc build or another identity does not | `TestUpdateKeepsRequirement`, and by hand on copies of copycopy 0.6.0 | macOS 27.2.1, Apple Silicon |
 | Signing and identity creation run without any dialog | `go test`, and by hand | macOS 27.2.1, Apple Silicon |
-| **TCC keeps the Accessibility grant across two builds signed with one identity** | **not verified yet**: install, grant, install the next build, use the permission | |
+| TCC keeps the Accessibility grant across two builds signed with one identity | by hand: wrkspaces 0.1.8 installed and granted, 0.1.9 installed over it, `verify-update` passed, Accessibility kept working without asking | macOS 27.2.1, Apple Silicon |
 | Intel Macs, older macOS versions | not run | |
 
 CI on `macos-15` runs the same tests: it shows they pass there, not that TCC

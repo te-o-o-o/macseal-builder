@@ -46,6 +46,7 @@
 | Signing and identity creation run without any dialog | `go test`, and by hand | macOS 27.2.1, Apple Silicon |
 | TCC keeps the Accessibility grant across two builds signed with one identity | by hand: wrkspaces 0.1.8 installed and granted, 0.1.9 installed over it, `verify-update` passed, Accessibility kept working without asking | macOS 27.2.1, Apple Silicon |
 | A release signed by the GitHub Action and downloaded with a browser keeps the grant too; Gatekeeper still blocks its first launch (only "Done" or "Move to Trash", then System Settings → Privacy & Security → Open Anyway) | by hand: wrkspaces 0.1.10 from its release `.dmg` over 0.1.9, Accessibility not asked again | macOS 27.2.1, Apple Silicon |
+| An update downloaded by a program (`curl` + `ditto -x -k`, what an in-app updater does) carries no quarantine: no Gatekeeper dialog, Accessibility kept | by hand: wrkspaces 0.1.9 → the 0.1.10 release `.zip`, checked with `codesign -R` against the installed requirement first | macOS 27.2.1, Apple Silicon |
 | Intel Macs, older macOS versions | not run | |
 
 CI on `macos-15` runs the same tests: it shows they pass there, not that TCC

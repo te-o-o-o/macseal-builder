@@ -78,6 +78,17 @@ func TestLinkCheck(t *testing.T) {
 	if c := linkCheck(app, exe); c.Level != levelOK {
 		t.Errorf("a helper with parentheses: %+v", c)
 	}
+	// The GitHub Action passes a relative path (.build/wrkspaces.app).
+	wd, _ := os.Getwd()
+	if err := os.Chdir(filepath.Dir(app)); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.Chdir(wd) })
+	rel := filepath.Base(app)
+	if c := linkCheck(rel, filepath.Join(rel, "Contents", "MacOS", "hello")); c.Level != levelOK {
+		t.Errorf("a relative app path: %+v", c)
+	}
+	os.Chdir(wd)
 	// Point the binary at a library outside the bundle, as a Homebrew build would.
 	ext := filepath.Join(t.TempDir(), "libext.dylib")
 	if err := os.WriteFile(ext, []byte("x"), 0o644); err != nil {

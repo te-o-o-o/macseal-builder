@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 (unreleased)
+
+### Fixed
+
+- `doctor` checks libraries again when the app is given as a relative path, as the GitHub Action does: it used to say otool cannot run.
+
 ## 0.1.0 (2026-11-25)
 
 ### Added

@@ -1,5 +1,11 @@
 # Changements
 
+## 0.1.1 (pas encore publiée)
+
+### Corrigé
+
+- `doctor` vérifie de nouveau les bibliothèques quand l'app est donnée par un chemin relatif, comme le fait la GitHub Action : il disait qu'otool ne pouvait pas tourner.
+
 ## 0.1.0 (2026-11-25)
 
 ### Ajouté

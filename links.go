@@ -178,7 +178,13 @@ func otool(flag, bin string) (string, error) {
 	}
 	defer os.RemoveAll(dir)
 	link := filepath.Join(dir, "bin")
-	if err := os.Symlink(bin, link); err != nil {
+	// A relative target would resolve from the temporary directory and dangle:
+	// the Action passes .build/wrkspaces.app, and otool then "cannot run".
+	target, err := filepath.Abs(bin)
+	if err != nil {
+		return "", err
+	}
+	if err := os.Symlink(target, link); err != nil {
 		return "", err
 	}
 	out, err := run("otool", flag, link)

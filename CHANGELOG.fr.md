@@ -1,6 +1,6 @@
 # Changements
 
-## 0.1.0 (pas encore publiée)
+## 0.1.0 (2026-11-25)
 
 ### Ajouté
 

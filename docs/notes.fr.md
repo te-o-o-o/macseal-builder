@@ -53,6 +53,7 @@
 | TCC garde l'autorisation Accessibilité entre deux builds signées avec la même identité | à la main : wrkspaces 0.1.8 installée et autorisée, 0.1.9 installée par-dessus, `verify-update` passé, l'Accessibilité marche toujours sans rien redemander | macOS 27.2.1, Apple Silicon |
 | Une release signée par la GitHub Action et téléchargée par un navigateur garde aussi l'autorisation ; Gatekeeper bloque toujours son premier lancement (seulement « Terminé » ou « Placer dans la corbeille », puis Réglages Système → Confidentialité et sécurité → Ouvrir quand même) | à la main : le `.dmg` de wrkspaces 0.1.10 par-dessus la 0.1.9, l'Accessibilité n'est pas redemandée | macOS 27.2.1, Apple Silicon |
 | Une mise à jour téléchargée par un programme (`curl` + `ditto -x -k`, ce que fait un updater intégré) n'a pas de quarantaine : pas de boîte Gatekeeper, Accessibilité gardée | à la main : wrkspaces 0.1.9 → le `.zip` de la release 0.1.10, vérifié d'abord avec `codesign -R` contre l'exigence installée | macOS 27.2.1, Apple Silicon |
+| Un updater intégré (wrkspaces 0.2.0, Swift) installe seul la release suivante : vérification `codesign -R`, échange après la sortie, relance ; pas de boîte Gatekeeper, Accessibilité gardée | à la main : 0.2.0 → 0.2.1 depuis le menu du clic droit | macOS 27.2.1, Apple Silicon |
 | Mac Intel, anciennes versions de macOS | pas lancé | |
 
 La CI sur `macos-15` lance les mêmes tests : elle montre qu'ils passent là,
